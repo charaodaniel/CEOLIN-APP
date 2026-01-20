@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:myapp/screens/configuracoes_corrida_screen.dart';
+import 'package:myapp/screens/informacoes_pessoais_screen.dart';
+import 'package:myapp/screens/veiculo_documentos_screen.dart';
 
 class PerfilTab extends StatelessWidget {
   const PerfilTab({super.key});
@@ -54,9 +57,15 @@ class PerfilTab extends StatelessWidget {
           _buildProfileCard(
             context,
             [
-              _buildListTile(context, 'Informações Pessoais', Icons.person_outline, () {}),
-              _buildListTile(context, 'Veículo e Documentos', Icons.directions_car_outlined, () {}),
-              _buildListTile(context, 'Configurações de Corrida', Icons.settings_outlined, () {}),
+              _buildListTile(context, 'Informações Pessoais', Icons.person_outline, () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const InformacoesPessoaisScreen()));
+              }),
+              _buildListTile(context, 'Veículo e Documentos', Icons.directions_car_outlined, () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const VeiculoDocumentosScreen()));
+              }),
+              _buildListTile(context, 'Configurações de Corrida', Icons.settings_outlined, () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const ConfiguracoesCorridaScreen()));
+              }),
             ],
           ),
           const SizedBox(height: 20),

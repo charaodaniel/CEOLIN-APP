@@ -9,6 +9,13 @@
 # packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
+analyzer:
+  errors:
+    # WORKAROUND: This ignores the overly aggressive deprecation warning for
+    # Radio widgets that is present in some Flutter pre-release versions.
+    # This is necessary to break the analysis loop.
+    deprecated_member_use: ignore
+
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`

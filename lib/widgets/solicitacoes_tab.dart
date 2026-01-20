@@ -1,5 +1,7 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:myapp/screens/corrida_navigation_screen.dart';
 
 // Ride request model
 class RideRequest {
@@ -18,11 +20,16 @@ class RideRequest {
   });
 }
 
-class SolicitacoesTab extends StatelessWidget {
+class SolicitacoesTab extends StatefulWidget {
   const SolicitacoesTab({super.key});
 
-  // Mock data for ride requests
-  static final List<RideRequest> _requests = [
+  @override
+  State<SolicitacoesTab> createState() => _SolicitacoesTabState();
+}
+
+class _SolicitacoesTabState extends State<SolicitacoesTab> {
+  final AudioPlayer _player = AudioPlayer();
+  final List<RideRequest> _requests = [
     RideRequest(
       passengerName: 'Ana Clara',
       passengerPhotoUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
@@ -47,18 +54,103 @@ class SolicitacoesTab extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) {
-    if (_requests.isEmpty) {
-      return _buildEmptyState();
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
+
+  void _showRideNotification() {
+    _player.setReleaseMode(ReleaseMode.loop);
+    _player.play(AssetSource('audio/olha-a-mensagem.mp3'));
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Nova Corrida!', style: GoogleFonts.roboto(fontWeight: FontWeight.bold)),
+          content: const Text('Você tem uma nova solicitação de corrida.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _player.stop();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Recusar', style: TextStyle(color: Colors.red)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _player.stop();
+                Navigator.of(context).pop();
+                if (_requests.isNotEmpty) {
+                  _handleRideAction(_requests.first, true);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue.shade700,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Aceitar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _handleRideAction(RideRequest request, bool accepted) {
+    if (accepted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CorridaNavigationScreen(rideRequest: request),
+        ),
+      ).then((_) {
+        // After returning from the navigation screen, remove the request
+        setState(() {
+          _requests.remove(request);
+        });
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Corrida aceita! Iniciando navegação...'),
+          backgroundColor: Colors.green,
+        ),
+      );
     } else {
-      return ListView.builder(
-        padding: const EdgeInsets.all(10.0),
-        itemCount: _requests.length,
-        itemBuilder: (context, index) {
-          return _buildRideRequestCard(context, _requests[index]);
-        },
+      setState(() {
+        _requests.remove(request);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Corrida recusada.'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _requests.isEmpty ? _buildEmptyState() : _buildRideList(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showRideNotification,
+        tooltip: 'Simular Nova Corrida',
+        child: const Icon(Icons.notifications_active),
+      ),
+    );
+  }
+
+  Widget _buildRideList() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(10.0),
+      itemCount: _requests.length,
+      itemBuilder: (context, index) {
+        return _buildRideRequestCard(context, _requests[index]);
+      },
+    );
   }
 
   Widget _buildEmptyState() {
@@ -104,7 +196,7 @@ class SolicitacoesTab extends StatelessWidget {
             const SizedBox(height: 10),
             _buildRouteInfo(Icons.flag, Colors.red, 'Destino', request.destinationAddress),
             const Divider(height: 32),
-            _buildActionBar(context, request.fare),
+            _buildActionBar(context, request),
           ],
         ),
       ),
@@ -140,8 +232,8 @@ class SolicitacoesTab extends StatelessWidget {
               Text(
                 label.toUpperCase(),
                 style: GoogleFonts.roboto(
-                  fontSize: 11, 
-                  fontWeight: FontWeight.w600, 
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
                   color: Colors.grey.shade500,
                   letterSpacing: 0.5,
                 ),
@@ -158,12 +250,12 @@ class SolicitacoesTab extends StatelessWidget {
     );
   }
 
-  Widget _buildActionBar(BuildContext context, double fare) {
+  Widget _buildActionBar(BuildContext context, RideRequest request) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'R\$ ${fare.toStringAsFixed(2)}',
+          'R\$ ${request.fare.toStringAsFixed(2)}',
           style: GoogleFonts.roboto(
             fontSize: 22,
             fontWeight: FontWeight.bold,
@@ -173,12 +265,12 @@ class SolicitacoesTab extends StatelessWidget {
         Row(
           children: [
             TextButton(
-              onPressed: () { /* Handle decline */ },
+              onPressed: () => _handleRideAction(request, false),
               child: const Text('Recusar', style: TextStyle(color: Colors.red)),
             ),
             const SizedBox(width: 8),
             ElevatedButton(
-              onPressed: () { /* Handle accept */ },
+              onPressed: () => _handleRideAction(request, true),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue.shade700,
                 foregroundColor: Colors.white,
