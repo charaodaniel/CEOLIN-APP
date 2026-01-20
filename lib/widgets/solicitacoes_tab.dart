@@ -24,10 +24,10 @@ class SolicitacoesTab extends StatefulWidget {
   const SolicitacoesTab({super.key});
 
   @override
-  State<SolicitacoesTab> createState() => _SolicitacoesTabState();
+  State<SolicitacoesTab> createState() => SolicitacoesTabState();
 }
 
-class _SolicitacoesTabState extends State<SolicitacoesTab> {
+class SolicitacoesTabState extends State<SolicitacoesTab> {
   final AudioPlayer _player = AudioPlayer();
   final List<RideRequest> _requests = [
     RideRequest(
@@ -59,7 +59,7 @@ class _SolicitacoesTabState extends State<SolicitacoesTab> {
     super.dispose();
   }
 
-  void _showRideNotification() {
+  void showRideNotification() {
     _player.setReleaseMode(ReleaseMode.loop);
     _player.play(AssetSource('audio/olha-a-mensagem.mp3'));
 
@@ -133,14 +133,7 @@ class _SolicitacoesTabState extends State<SolicitacoesTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _requests.isEmpty ? _buildEmptyState() : _buildRideList(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showRideNotification,
-        tooltip: 'Simular Nova Corrida',
-        child: const Icon(Icons.notifications_active),
-      ),
-    );
+    return _requests.isEmpty ? _buildEmptyState() : _buildRideList();
   }
 
   Widget _buildRideList() {

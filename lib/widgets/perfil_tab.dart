@@ -5,13 +5,13 @@ import 'package:myapp/screens/informacoes_pessoais_screen.dart';
 import 'package:myapp/screens/veiculo_documentos_screen.dart';
 
 class PerfilTab extends StatelessWidget {
-  const PerfilTab({super.key});
+  final VoidCallback? showProfilePictureOptions;
+  const PerfilTab({super.key, this.showProfilePictureOptions});
 
-  // Function to show a confirmation dialog
   Future<void> _showLogoutDialog(BuildContext context) async {
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // User must tap a button
+      barrierDismissible: false, 
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirmar Saída'),
@@ -33,8 +33,7 @@ class PerfilTab extends StatelessWidget {
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text('Sair'),
               onPressed: () {
-                Navigator.of(context).pop(); // Dismiss the dialog
-                // In a real app, you would handle the logout logic here.
+                Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Saindo...')),
                 );
@@ -48,15 +47,17 @@ class PerfilTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[200], // Light grey background
-      body: ListView(
+    return Container(
+      color: Colors.grey[200],
+      child: ListView(
         children: [
           const SizedBox(height: 20),
-          // Profile sections grouped in cards
           _buildProfileCard(
             context,
             [
+              _buildListTile(context, 'Foto do Perfil', Icons.account_circle_outlined, () {
+                showProfilePictureOptions?.call();
+              }),
               _buildListTile(context, 'Informações Pessoais', Icons.person_outline, () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const InformacoesPessoaisScreen()));
               }),
@@ -81,12 +82,12 @@ class PerfilTab extends StatelessWidget {
             context,
             [
               _buildListTile(
-                context, 
-                'Sair', 
-                Icons.exit_to_app_outlined, 
-                () => _showLogoutDialog(context), 
+                context,
+                'Sair',
+                Icons.exit_to_app_outlined,
+                () => _showLogoutDialog(context),
                 color: Colors.red,
-                hideChevron: true, // No chevron for logout
+                hideChevron: true,
               ),
             ],
           ),
@@ -95,7 +96,6 @@ class PerfilTab extends StatelessWidget {
     );
   }
 
-  // Helper to build the card container
   Widget _buildProfileCard(BuildContext context, List<Widget> children) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12),
@@ -123,7 +123,6 @@ class PerfilTab extends StatelessWidget {
     );
   }
 
-  // Helper to build a styled ListTile
   Widget _buildListTile(BuildContext context, String title, IconData icon, VoidCallback onTap, {Color? color, bool hideChevron = false}) {
     return ListTile(
       leading: Icon(icon, color: color ?? Colors.grey[600], size: 26),

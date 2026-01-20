@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:myapp/models/ride_history_model.dart';
 import 'package:myapp/screens/registro_corrida_manual_screen.dart';
@@ -55,6 +57,57 @@ class HistoricoTabState extends State<HistoricoTab> {
     if (newRide != null) addRide(newRide);
   }
 
+  /// Sincroniza a lista completa de corridas com a Planilha Google.
+  Future<void> syncToGoogleSheets() async {
+    // URL foi inserida aqui!
+    const String webAppUrl = 'https://script.google.com/macros/s/AKfycby9w1FpBbExRuyWdQTelGenpS2n4hSy3_FsY5pu1kmwwhEnivjrTpMAwT72LzrYgq-z/exec';
+
+    if (!mounted) return; // Verificação de segurança
+
+    // Exibe um aviso inicial para o usuário.
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Sincronizando com a Planilha Google...')),
+    );
+
+    try {
+      // Converte a lista de corridas em JSON e envia para o script.
+      final response = await http.post(
+        Uri.parse(webAppUrl),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: jsonEncode(_allRides.map((ride) => ride.toJson()).toList()),
+      ).timeout(const Duration(seconds: 20)); // Adiciona um timeout
+
+      if (!mounted) return; // Verificação de segurança pós-await
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final responseBody = jsonDecode(response.body);
+        if (responseBody['status'] == 'success') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Dados sincronizados com sucesso!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          // O script retornou um erro de lógica interna.
+          throw Exception('Erro no script: ${responseBody['message']}');
+        }
+      } else {
+        // O servidor retornou um código de erro (ex: 404, 500).
+        throw Exception('Erro no servidor: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (!mounted) return; // Verificação de segurança final
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Falha na sincronização: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+
   void applyFilter(FilterType filter, {DateTimeRange? range}) {
     setState(() {
       _activeFilter = filter;
@@ -100,8 +153,8 @@ class HistoricoTabState extends State<HistoricoTab> {
       initialDateRange: _customDateRange,
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
-          colorScheme: ColorScheme.light(primary: Theme.of(context).primaryColor, onPrimary: Colors.white, onSurface: Colors.black),
-          textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(foregroundColor: Theme.of(context).primaryColor)),
+          colorScheme: ColorScheme.light(primary: Colors.blue.shade800, onPrimary: Colors.white, onSurface: Colors.black87),
+          textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(foregroundColor: Colors.blue.shade800)),
         ),
         child: child!,
       ),
@@ -133,13 +186,7 @@ class HistoricoTabState extends State<HistoricoTab> {
  @override
 Widget build(BuildContext context) {
   return Container(
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        colors: [Colors.blue.shade800, Colors.blue.shade400],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-    ),
+    color: Colors.transparent, // Explicitly transparent
     child: Column(
       children: [
         _buildFilterChips(),
@@ -183,6 +230,7 @@ Widget build(BuildContext context) {
 
   Widget _buildHistoryList() {
     return ListView.builder(
+      padding: const EdgeInsets.only(top: 8),
       itemCount: _filteredRides.length,
       itemBuilder: (context, index) {
         final ride = _filteredRides[index];
@@ -211,12 +259,12 @@ Widget build(BuildContext context) {
           Icon(_activeFilter != FilterType.none ? Icons.search_off : Icons.history_toggle_off, size: 80, color: Colors.white70),
           const SizedBox(height: 20),
           Text(
-            _activeFilter != FilterType.none ? 'Nenhum resultado encontrado' : 'Nenhum histórico de corridas',
+            _activeFilter != FilterType.none ? 'Nenhum resultado encontrado' : 'Histórico de corridas vazio',
             style: GoogleFonts.roboto(fontSize: 18, color: Colors.white),
           ),
           const SizedBox(height: 8),
           Text(
-            _activeFilter != FilterType.none ? 'Tente um período de data diferente ou limpe o filtro.' : 'Suas corridas concluídas aparecerão aqui.',
+            _activeFilter != FilterType.none ? 'Tente um período de data diferente.' : 'Suas corridas concluídas aparecerão aqui.',
             textAlign: TextAlign.center,
             style: GoogleFonts.roboto(fontSize: 14, color: Colors.white70),
           ),

@@ -4,9 +4,68 @@
 
 This document outlines the structure, features, and design of the Flutter application "CEOLIN mobilidade urbana".
 
-## Current Version
+---
 
-### Features
+## Integração com Planilhas Google
+
+### Visão Geral
+
+Esta seção detalha como configurar a sincronização de dados do histórico de corridas do aplicativo Flutter para uma Planilha Google em tempo real. A integração utiliza um Google Apps Script, que funciona como uma API, para receber os dados do aplicativo e espelhá-los na planilha. Uma cópia do script necessário está salva neste projeto no arquivo `google_sheets_api_script.js`.
+
+### Passo 1: Preparar a Planilha e o Script
+
+1.  **Crie uma Nova Planilha:**
+    *   Acesse o [Google Sheets](https://sheets.new) e crie uma nova planilha em branco.
+    *   Renomeie a primeira aba (página) para **`Página1`**. *Atenção: o nome deve ser exatamente este, pois o script a procura por este nome.*
+
+2.  **Abra o Editor de Scripts:**
+    *   Com a planilha aberta, vá ao menu **Extensões > Apps Script**.
+
+3.  **Cole o Código do Script:**
+    *   No seu projeto, abra o arquivo `google_sheets_api_script.js` e copie todo o seu conteúdo.
+    *   No editor do Apps Script, apague qualquer código de exemplo e cole o código que você copiou.
+    *   Clique no ícone de **Salvar projeto** (disquete).
+
+### Passo 2: Implantar o Script como um App da Web
+
+1.  **Inicie a Implantação:**
+    *   No editor do Apps Script, clique no botão azul **Implantar** e selecione **Nova implantação**.
+
+2.  **Configure o App da Web:**
+    *   Clique no ícone de engrenagem (ao lado de "Selecione o tipo") e escolha **App da Web**.
+    *   Na tela de configuração, preencha os seguintes campos:
+        *   **Descrição:** `API para App de Corridas CEOLIN`
+        *   **Executar como:** `Eu (seu-email@gmail.com)`
+        *   **Quem pode acessar:** **MUITO IMPORTANTE:** Altere para **`Qualquer pessoa`**. Isso permite que o aplicativo Flutter (que é um sistema externo) envie dados para a planilha.
+
+3.  **Implante e Autorize:**
+    *   Clique em **Implantar**.
+    *   O Google solicitará permissão para o script acessar e modificar sua planilha. Clique em **Autorizar acesso**.
+    *   Escolha sua conta Google. Você verá um aviso de "App não verificado". Isso é normal. Clique em **Avançado** e, em seguida, em **Acessar... (não seguro)**.
+
+4.  **Copie a URL do App da Web:**
+    *   Após a autorização, uma janela mostrará a **URL do App da Web**. Esta URL é o endereço da sua nova API. **Copie esta URL**, pois você a usará no próximo passo.
+
+### Passo 3: Conectar o Aplicativo Flutter
+
+1.  **Abra o Arquivo Correto:**
+    *   No seu projeto Flutter, navegue e abra o arquivo `lib/widgets/historico_tab.dart`.
+
+2.  **Insira a URL:**
+    *   Localize a variável `webAppUrl` dentro da função `syncToGoogleSheets()`.
+    *   **Substitua** o valor `'SUA_URL_DO_APP_DA_WEB_VEM_AQUI'` pela URL que você copiou no passo anterior.
+
+    ```dart
+    // Exemplo de como deve ficar:
+    const String webAppUrl = 'https://script.google.com/macros/s/ABC...XYZ/exec';
+    ```
+
+3.  **Execute o Aplicativo:**
+    *   Salve o arquivo e execute seu aplicativo. Navegue até a aba **Histórico** e clique no ícone de **sincronização** (nuvem com seta). Os dados da lista de corridas serão enviados e aparecerão na sua planilha.
+
+---
+
+## Current Version Features
 
 *   **Login Screen:** A modern login screen with two distinct user flows:
     *   "Login Motorista" navigates to the `DriverDashboardScreen`.
@@ -27,6 +86,8 @@ This document outlines the structure, features, and design of the Flutter applic
         *   **Date-based Filtering:** Users can filter the ride history by selecting a date range.
         *   **Report Export:** Users can export the current view (either full or filtered history) to both **PDF** and **CSV** formats for financial tracking.
     *   **Perfil:** A settings screen with interactive options for personal info, vehicle, and app settings. Includes a confirmation dialog for logging out.
+*   **Google Sheets Integration:**
+    *   A "Sync to Cloud" button in the History tab allows drivers to mirror their entire ride history to a designated Google Sheet via a custom Google Apps Script API.
 *   **Profile Management Screens:**
     *   **Informações Pessoais:** A screen where drivers can view and edit their personal information.
     *   **Veículo e Documentos:** A screen for managing vehicle information and document uploads.

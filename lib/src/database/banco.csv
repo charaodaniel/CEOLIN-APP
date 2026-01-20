@@ -1,0 +1,12 @@
+type,id,name,email,license_plate,status,driver_id,model,year,user_id,origin,destination,fare,date,ride_id,sender_id,receiver_id,message,timestamp,fare_estimate,key,value,url
+users,1,Alice,alice@example.com,,,,,,,,,,,,,,,,,
+users,2,Bob,bob@example.com,,,,,,,,,,,,,,,,,
+drivers,1,Carlos Ceolin,,BRA2E19,online,,,,,,,,,,,,,,,,
+vehicles,,,,,,1,Toyota Corolla,2022,,,,,,,,,,,,,,,
+rides,1,,,,,1,,25.5,2023-10-26T10:00:00Z,1,Ponto A,Ponto B,completed,,,,,,,,,
+rides,2,,,,,1,,18.75,2023-10-25T15:30:00Z,2,Ponto C,Ponto D,completed,,,,,,,,,
+chats,1,,,,,,,,,,,,1,1,1,Estou no local.,2023-10-26T10:01:00Z,,,,,,
+ride_requests,101,,,,,,,,1,Shopping Total,Aeroporto Salgado Filho,,pending,,,,35,,,,,,
+configs,,,,,app_version,1.0.0,,,,,,,,,,,,,,,
+configs,,,,,support_phone,+5551999998888,,,,,,,,,,,,,,,
+documents,1,,,,,,1,,,,,,,,,,,,,,CNH,/documents/cnh_carlos.pdf,verified
