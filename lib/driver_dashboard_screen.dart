@@ -18,14 +18,34 @@ class DriverDashboardScreen extends StatefulWidget {
   State<DriverDashboardScreen> createState() => _DriverDashboardScreenState();
 }
 
-class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
+class _DriverDashboardScreenState extends State<DriverDashboardScreen> with SingleTickerProviderStateMixin {
   XFile? _image;
   final ImagePicker _picker = ImagePicker();
+  late TabController _tabController;
+  final GlobalKey<HistoricoTabState> _historicoTabKey = GlobalKey<HistoricoTabState>();
+  int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) return;
+      setState(() {
+        _currentIndex = _tabController.index;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(() {});
+    _tabController.dispose();
+    super.dispose();
+  }
 
   Future<void> _handleRefresh() async {
-    // Simulate a network request or data refresh
     await Future.delayed(const Duration(seconds: 2));
-    // In a real app, you would fetch new data here
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -35,7 +55,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       );
     }
   }
-
 
   Future<void> _pickImage(ImageSource source) async {
     final permission = source == ImageSource.camera ? Permission.camera : Permission.photos;
@@ -85,7 +104,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 ),
                 const SizedBox(height: 20),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _buildOption(
                       context,
@@ -94,14 +113,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       Colors.blue.shade700,
                       () {
                         Navigator.of(context).pop();
-                        Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => ProfilePictureScreen(
-                            imageUrl: _image?.path ?? 'https://picsum.photos/200',
-                          ),
-                        ));
+                        if (_image?.path != null) {
+                           Navigator.of(context).push(MaterialPageRoute(
+                            builder: (_) => ProfilePictureScreen(imageUrl: _image!.path),
+                          ));
+                        }
                       },
                     ),
-                    const SizedBox(width: 40),
                     _buildOption(
                       context,
                       Icons.photo_library,
@@ -112,7 +130,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         Navigator.of(context).pop();
                       },
                     ),
-                    const SizedBox(width: 40),
                     _buildOption(
                       context,
                       Icons.camera_alt,
@@ -126,15 +143,17 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   ],
                 ),
                 const SizedBox(height: 10),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.delete, color: Colors.red),
-                  title: const Text('Remover foto', style: TextStyle(color: Colors.red)),
-                  onTap: () {
-                    _removeImage();
-                    Navigator.of(context).pop();
-                  },
-                )
+                if (_image != null) ...[
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.delete, color: Colors.red),
+                    title: const Text('Remover foto', style: TextStyle(color: Colors.red)),
+                    onTap: () {
+                      _removeImage();
+                      Navigator.of(context).pop();
+                    },
+                  )
+                ]
               ],
             ),
           ),
@@ -161,65 +180,113 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: DefaultTabController(
-        length: 4,
-        child: CustomScrollView(
-          slivers: <Widget>[
-            CupertinoSliverRefreshControl(
-              onRefresh: _handleRefresh,
+ @override
+Widget build(BuildContext context) {
+  bool isHistoryTab = _currentIndex == 2;
+
+  return Stack(
+    children: [
+      if (isHistoryTab)
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue.shade800, Colors.blue.shade400],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            SliverAppBar(
-              backgroundColor: Colors.white,
-              pinned: true,
-              floating: true, 
-              expandedHeight: 320.0, // Adjust height to fit content
-              flexibleSpace: FlexibleSpaceBar(
-                background: _buildProfileHeader(),
+          ),
+        ),
+      Scaffold(
+        backgroundColor: isHistoryTab ? Colors.transparent : Colors.white,
+        floatingActionButton: isHistoryTab
+            ? FloatingActionButton(
+                onPressed: () => _historicoTabKey.currentState?.navigateToRegisterScreen(),
+                backgroundColor: Colors.white,
+                tooltip: 'Registrar Corrida Manual',
+                child: Icon(Icons.add, color: Colors.blue.shade800),
+              )
+            : null,
+        body: DefaultTabController(
+          length: 4,
+          child: CustomScrollView(
+            slivers: <Widget>[
+              CupertinoSliverRefreshControl(
+                onRefresh: _handleRefresh,
               ),
-              bottom: const TabBar(
-                tabs: [
-                  Tab(text: 'Solicitações'),
-                  Tab(text: 'Conversas'),
-                  Tab(text: 'Histórico'),
-                  Tab(text: 'Perfil'),
-                ],
-                labelColor: Colors.black,
-                unselectedLabelColor: Colors.grey,
-                indicatorColor: Colors.blue,
+              SliverAppBar(
+                backgroundColor: isHistoryTab ? Colors.transparent : Colors.white,
+                pinned: true,
+                floating: true,
+                elevation: isHistoryTab ? 0 : 4,
+                expandedHeight: 320.0,
+                actions: isHistoryTab
+                    ? [
+                        IconButton(
+                          icon: const Icon(Icons.filter_list, color: Colors.white),
+                          onPressed: () => _historicoTabKey.currentState?.showCustomFilterDialog(),
+                          tooltip: 'Filtro Personalizado',
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.ios_share, color: Colors.white),
+                          onPressed: () => _historicoTabKey.currentState?.showExportDialog(),
+                          tooltip: 'Exportar Relatório',
+                        ),
+                      ]
+                    : [],
+                flexibleSpace: FlexibleSpaceBar(
+                  background: _buildProfileHeader(isHistoryTab),
+                ),
+                bottom: TabBar(
+                  controller: _tabController,
+                  tabs: const [
+                    Tab(text: 'Solicitações'),
+                    Tab(text: 'Conversas'),
+                    Tab(text: 'Histórico'),
+                    Tab(text: 'Perfil'),
+                  ],
+                  labelColor: isHistoryTab ? Colors.white : Colors.black,
+                  unselectedLabelColor: isHistoryTab ? Colors.white70 : Colors.grey,
+                  indicatorColor: isHistoryTab ? Colors.white : Colors.blue,
+                ),
               ),
-            ),
-            const SliverFillRemaining(
-              child: TabBarView(
-                children: [
-                  SolicitacoesTab(),
-                  ConversasTab(),
-                  HistoricoTab(),
-                  PerfilTab(),
-                ],
+              SliverFillRemaining(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    const SolicitacoesTab(),
+                    const ConversasTab(),
+                    HistoricoTab(key: _historicoTabKey),
+                    const PerfilTab(),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    );
-  }
+    ],
+  );
+}
 
-  Widget _buildProfileHeader() {
+
+  Widget _buildProfileHeader(bool isHistoryTab) {
+    Color textColor = isHistoryTab ? Colors.white : Colors.black;
+    Color subtextColor = isHistoryTab ? Colors.white70 : Colors.grey.shade600;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withAlpha(51), // Replaced withOpacity
-            spreadRadius: 2,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          )
-        ],
+        color: isHistoryTab ? Colors.transparent : Colors.white,
+        boxShadow: isHistoryTab
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.grey.withAlpha(51),
+                  spreadRadius: 2,
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                )
+              ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -237,7 +304,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           const SizedBox(height: 12),
           Text(
             'Juliano Ceolin',
-            style: GoogleFonts.roboto(fontSize: 24, fontWeight: FontWeight.bold),
+            style: GoogleFonts.roboto(fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
           ),
           const SizedBox(height: 6),
           Row(
@@ -247,7 +314,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               const SizedBox(width: 5),
               Text(
                 '4.9 (41 corridas)',
-                style: GoogleFonts.roboto(fontSize: 16, color: Colors.grey.shade600),
+                style: GoogleFonts.roboto(fontSize: 16, color: subtextColor),
               ),
             ],
           ),
@@ -259,7 +326,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               children: [
                 Text(
                   'Online',
-                  style: GoogleFonts.roboto(fontSize: 18, fontWeight: FontWeight.w500),
+                  style: GoogleFonts.roboto(fontSize: 18, fontWeight: FontWeight.w500, color: textColor),
                 ),
                 Switch(
                   value: true,

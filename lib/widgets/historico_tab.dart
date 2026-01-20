@@ -11,10 +11,10 @@ class HistoricoTab extends StatefulWidget {
   const HistoricoTab({super.key});
 
   @override
-  State<HistoricoTab> createState() => _HistoricoTabState();
+  HistoricoTabState createState() => HistoricoTabState();
 }
 
-class _HistoricoTabState extends State<HistoricoTab> {
+class HistoricoTabState extends State<HistoricoTab> {
   final List<RideHistory> _allRides = [
     RideHistory(destination: 'Shopping Iguatemi', date: DateTime.now().subtract(const Duration(hours: 4)), fare: 25.50),
     RideHistory(destination: 'Aeroporto Salgado Filho', date: DateTime.now().subtract(const Duration(days: 1, hours: 2)), fare: 42.80),
@@ -36,10 +36,10 @@ class _HistoricoTabState extends State<HistoricoTab> {
     _filteredRides = List.from(_allRides);
   }
 
-  void _addRide(RideHistory ride) {
+  void addRide(RideHistory ride) {
     setState(() {
       _allRides.insert(0, ride);
-      _applyFilter(_activeFilter, range: _customDateRange);
+      applyFilter(_activeFilter, range: _customDateRange);
     });
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -48,14 +48,14 @@ class _HistoricoTabState extends State<HistoricoTab> {
     }
   }
 
-  void _navigateToRegisterScreen() async {
+  Future<void> navigateToRegisterScreen() async {
     final newRide = await Navigator.of(context).push<RideHistory>(
       MaterialPageRoute(builder: (context) => const RegistroCorridaManualScreen()),
     );
-    if (newRide != null) _addRide(newRide);
+    if (newRide != null) addRide(newRide);
   }
 
-  void _applyFilter(FilterType filter, {DateTimeRange? range}) {
+  void applyFilter(FilterType filter, {DateTimeRange? range}) {
     setState(() {
       _activeFilter = filter;
       _customDateRange = range;
@@ -92,7 +92,7 @@ class _HistoricoTabState extends State<HistoricoTab> {
     });
   }
 
-  Future<void> _showCustomFilterDialog() async {
+  Future<void> showCustomFilterDialog() async {
     final DateTimeRange? picked = await showDateRangePicker(
       context: context,
       firstDate: DateTime(2020),
@@ -106,10 +106,10 @@ class _HistoricoTabState extends State<HistoricoTab> {
         child: child!,
       ),
     );
-    if (picked != null) _applyFilter(FilterType.custom, range: picked);
+    if (picked != null) applyFilter(FilterType.custom, range: picked);
   }
 
-  Future<void> _showExportDialog() async {
+  Future<void> showExportDialog() async {
     showDialog(
       context: context,
       builder: (BuildContext context) => AlertDialog(
@@ -130,50 +130,27 @@ class _HistoricoTabState extends State<HistoricoTab> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    bool isCustomFilterActive = _activeFilter == FilterType.custom;
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.blue.shade800, Colors.blue.shade400],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+ @override
+Widget build(BuildContext context) {
+  return Container(
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        colors: [Colors.blue.shade800, Colors.blue.shade400],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
       ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          title: Text('Histórico de Corridas', style: GoogleFonts.roboto(fontWeight: FontWeight.bold)),
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          actions: [
-            IconButton(
-              icon: Icon(Icons.filter_list, color: isCustomFilterActive ? Colors.white : Colors.white),
-              onPressed: _showCustomFilterDialog,
-              tooltip: 'Filtro Personalizado',
-            ),
-            IconButton(icon: const Icon(Icons.ios_share, color: Colors.white), onPressed: _showExportDialog, tooltip: 'Exportar Relatório'),
-          ],
+    ),
+    child: Column(
+      children: [
+        _buildFilterChips(),
+        Expanded(
+          child: _filteredRides.isEmpty ? _buildEmptyState() : _buildHistoryList(),
         ),
-        body: Column(
-          children: [
-            _buildFilterChips(),
-            Expanded(
-              child: _filteredRides.isEmpty ? _buildEmptyState() : _buildHistoryList(),
-            ),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _navigateToRegisterScreen,
-          backgroundColor: Colors.white,
-          tooltip: 'Registrar Corrida Manual',
-          child: Icon(Icons.add, color: Colors.blue.shade800),
-        ),
-      ),
-    );
-  }
+      ],
+    ),
+  );
+}
+
 
   Widget _buildFilterChips() {
     return Container(
@@ -190,7 +167,7 @@ class _HistoricoTabState extends State<HistoricoTab> {
                 labelStyle: const TextStyle(color: Colors.white),
                 selected: _activeFilter == filter,
                 onSelected: (bool selected) {
-                  if (selected) _applyFilter(filter);
+                  if (selected) applyFilter(filter);
                 },
                 selectedColor: Colors.white.withOpacity(0.3),
                 checkmarkColor: Colors.white,
