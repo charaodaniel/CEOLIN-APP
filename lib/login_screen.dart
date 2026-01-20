@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:myapp/admin_dashboard_screen.dart';
 import 'package:myapp/driver_dashboard_screen.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -69,7 +70,10 @@ class LoginScreen extends StatelessWidget {
                     text: 'Login Administrador',
                     icon: Icons.admin_panel_settings,
                     onPressed: () {
-                      // Lógica para login do administrador
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+                      );
                     },
                   ),
                 ],

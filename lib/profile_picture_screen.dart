@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 class ProfilePictureScreen extends StatelessWidget {
@@ -7,6 +9,8 @@ class ProfilePictureScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isFile = File(imageUrl).existsSync();
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -19,11 +23,13 @@ class ProfilePictureScreen extends StatelessWidget {
       ),
       body: Center(
         child: InteractiveViewer(
-          panEnabled: true, 
+          panEnabled: true,
           boundaryMargin: const EdgeInsets.all(20),
           minScale: 0.5,
           maxScale: 4,
-          child: Image.network(imageUrl),
+          child: isFile
+              ? Image.file(File(imageUrl))
+              : Image.network(imageUrl),
         ),
       ),
     );

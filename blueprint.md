@@ -8,37 +8,41 @@ This document outlines the structure, features, and design of the Flutter applic
 
 ### Features
 
-*   **Login Screen:** A modern login screen with a "Bem-vindo" message and two buttons:
-    *   "Login Motorista"
-    *   "Login Administrador"
-*   **Driver Dashboard Screen:** A screen for the driver's panel, accessible from the "Login Motorista" button. It includes:
-    *   Driver's profile information (picture, name, rating).
-    *   An "Online" status switch.
-    *   Tabs for "Solicitações", "Histórico", "Conversas", and "Perfil".
+*   **Login Screen:** A modern login screen with two distinct user flows:
+    *   "Login Motorista" navigates to the `DriverDashboardScreen`.
+    *   "Login Administrador" navigates to the `AdminDashboardScreen`.
+*   **Driver Dashboard Screen (Modernized):**
+    *   **Dynamic Scrolling UI:** A `CustomScrollView` provides a fluid user experience.
+    *   **Collapsible App Bar:** A `SliverAppBar` creates a header that elegantly expands and collapses on scroll.
+    *   **Pull-to-Refresh:** Allows drivers to refresh ride requests with a simple pull-down gesture.
+*   **Admin Dashboard Screen:** 
+    *   A dedicated placeholder screen (`lib/admin_dashboard_screen.dart`) for future administrator features.
 *   **Profile Picture Management:**
-    *   **Interactive Modal:** Clicking the profile picture opens a modern, WhatsApp-style modal.
-    *   **View Picture:** An option to view the profile picture in a full-screen, zoomable view (`profile_picture_screen.dart`).
-    *   **Change Picture:** Users can change their profile picture by selecting an image from their device's **Gallery** or taking a new one with the **Camera** (using `image_picker`).
-    *   **Remove Picture:** An option to remove the current profile picture and revert to the default one.
-    *   **State Management:** The dashboard is a `StatefulWidget` to dynamically manage and display the updated profile picture.
+    *   An interactive, WhatsApp-style modal for managing the driver's profile picture.
+*   **Tabbed Navigation (`DriverDashboardScreen`):**
+    *   **Solicitações:** A functional UI displaying a list of incoming ride requests.
+    *   **Conversas:** A functional `ListView` that displays a list of chats with passengers.
+    *   **Histórico:** A functional `ListView` that displays a list of completed rides.
+    *   **Perfil:** A settings screen with interactive options for personal info, vehicle, and app settings. Includes a confirmation dialog for logging out.
+*   **Error Handling and Permissions:**
+    *   Robust handling for image loading and permissions for camera/gallery access.
 
 ### Design
 
-*   **App Name:** The application's name is "CEOLIN mobilidade urbana".
-*   **Theme:** The application uses a blue, red, and white color scheme.
-*   **Typography:** The `google_fonts` package is used for custom fonts (Oswald and Roboto).
+*   **App Name:** "CEOLIN mobilidade urbana".
+*   **Theme:** A consistent color scheme of blue, red, and white.
+*   **Typography:** Custom fonts (Oswald and Roboto) via `google_fonts`.
 *   **Layout:**
-    *   The login screen has a centered column with a welcome message and two buttons, featuring icons, shadows, and rounded corners for a modern look.
-    *   The driver dashboard screen has a clean layout with a profile section and a tab bar for navigation.
-*   **Background:** A gradient from dark to light blue is used as the background for the login screen. The driver dashboard has a white background.
-*   **Profile Modal:** The modal for profile picture options is styled with a title, circular icon buttons for actions ("Ver Foto", "Galeria", "Câmera"), and a clear "Remover foto" option, inspired by modern mobile UI patterns.
+    *   **Login:** A visually appealing screen with a gradient background and modern, shadowed buttons.
+    *   **Driver Dashboard:** A sophisticated layout featuring a `SliverAppBar` for a dynamic, collapsible profile header.
+    *   **Conversas Tab:** A clean `ListTile`-based design for chat previews.
+    *   **Histórico Tab:** A `Card`-based design for the ride history.
+    *   **Perfil Tab:** A clean, card-based settings screen inspired by modern applications, using `ListTile`s with clear icons and navigation cues (`chevron_right`).
+    *   **Ride Requests:** Professional `Card`-based design for clarity.
 
 ## Plan for Current Request
 
-*   **Implement a modern, WhatsApp-style modal** for profile picture options.
-*   **Add options to the modal:** "Ver Foto", "Galeria", "Câmera", and "Remover foto".
-*   **Create a new screen (`profile_picture_screen.dart`)** to display the profile picture in full-screen with zoom functionality.
-*   **Integrate the `image_picker` package** to allow users to select images from the gallery or camera.
-*   **Convert `DriverDashboardScreen` to a `StatefulWidget`** to manage the state of the profile picture.
-*   **Implement the logic** to update the `CircleAvatar` with the new image and handle image removal.
-*   **Update the `blueprint.md`** to reflect all the new features and design changes.
+*   **Create "Informações Pessoais" Screen:** Develop a new screen where drivers can view and edit their personal information.
+*   **Implement Navigation:** Add navigation from the "Perfil" tab to the new screen.
+*   **Design the UI:** Create a user-friendly interface with editable text fields for personal details.
+*   **Update Documentation:** Document the new screen in the `blueprint.md`.
